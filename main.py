@@ -1,4 +1,5 @@
 from degiro_tracker import DegiroFunctions
+from csv_updater import DegiroUpdateCSV
 from dotenv import load_dotenv
 import os
 
@@ -38,6 +39,13 @@ if __name__ == '__main__':
     DGF.login(username, password)
     products = DGF.fetch_portfolio()
 
-    print(products)
+    if not os.path.isfile("len_products.txt"):
+        with open("len_products.txt", "w") as f:
+            f.write(str(len(products)))
+        f.close()
+
+    UpdateCSVGiro = DegiroUpdateCSV()
+
+    UpdateCSVGiro.update_stocks()
 
 
