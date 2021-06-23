@@ -38,4 +38,6 @@ if __name__ == '__main__':
     DGF.login(username, password)
     products = DGF.fetch_portfolio()
 
+    print(products)
+
 
