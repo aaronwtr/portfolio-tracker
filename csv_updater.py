@@ -10,7 +10,7 @@ class DegiroUpdateCSV:
             self.products = int(f.read())
 
         self.portfolio_path = os.getenv("PORTFOLIO_CSV")
-        self.header_value = 15  # Start of stock portfolio rows (header)
+        self.header_value = 15  # Start of stock portfolio rows
 
     def get_excel_stocks(self):
         stocks_portfolio = pd.read_excel(self.portfolio_path, sheet_name='Stocks portfolio',
@@ -18,19 +18,16 @@ class DegiroUpdateCSV:
                                          nrows=self.products - 1)
 
         excel_stocks = list(stocks_portfolio["Code"])
+        stocks_value_old = list(stocks_portfolio["Huidige waarde"])
 
-        return excel_stocks
+        dict_old_value = dict(zip(excel_stocks, stocks_value_old))
 
-    def update_stocks(self, excel_stocks, DGF):
+        return excel_stocks, dict_old_value
+
+    def update_stocks(self, excel_stocks, dict_old_value, DGF, save=False):
 
         wb = pyxl.load_workbook(filename=self.portfolio_path)
         ws = wb.worksheets[0]
-
-        stock_cells = []
-        count = self.header_value
-        for i in range(len(excel_stocks)):
-            stock_cells.append('B{}'.format(count))
-            count += 1
 
         products = DGF.fetch_portfolio()
 
@@ -39,5 +36,28 @@ class DegiroUpdateCSV:
                 f.write(str(len(products)))
             f.close()
 
-        for cell in stock_cells:
-            print(ws[cell].value)
+        count = self.header_value
+        excel_stock_loc = {}
+        for i in range(len(excel_stocks)):
+            excel_stock_loc[count] = excel_stocks[i]
+            count += 1
+
+        output_summary = []
+        for key, value in excel_stock_loc.items():
+            price_new = round(products[value], 2)
+            ws['J{}'.format(key)].value = price_new
+
+            price_old = round(dict_old_value[value], 2)
+            output_summary.append('{}: {} --> {}'.format(value, price_old, price_new))
+
+        if save:
+            wb.save(self.portfolio_path)    # In order to make changes have effect, put save = True
+            print('Success! The results were saved to {}\n\nThe following changes were made:\n'.format(
+                self.portfolio_path))
+        else:
+            print('Success! The results were not saved. If you want to save the results, add save=True to update_stocks().'
+                  '\n\nThe following changes were made:'.format(self.portfolio_path))
+
+        for summary in output_summary:
+            print(summary)
+

@@ -35,9 +35,7 @@ if __name__ == '__main__':
     username, password = get_degiro_login()
     DGF = DegiroFunctions()  # Instantiate DGF object
     DGF.login(username, password)
-    
+
     UpdateCSVGiro = DegiroUpdateCSV()
-
-    excel_stocks = UpdateCSVGiro.get_excel_stocks()
-
-    UpdateCSVGiro.update_stocks(excel_stocks, DGF)
+    excel_stocks, dict_old_value = UpdateCSVGiro.get_excel_stocks()
+    UpdateCSVGiro.update_stocks(excel_stocks, dict_old_value, DGF, save=True)
