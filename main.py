@@ -3,7 +3,6 @@ from csv_updater import DegiroUpdateCSV
 from dotenv import load_dotenv
 import os
 
-
 """
     Portfolio Tracker
     Copyright (C) 2021  Aaron Wenteler
@@ -34,18 +33,11 @@ if __name__ == '__main__':
     load_dotenv()
 
     username, password = get_degiro_login()
-
-    DGF = DegiroFunctions()     # Instantiate DGF object
+    DGF = DegiroFunctions()  # Instantiate DGF object
     DGF.login(username, password)
-    products = DGF.fetch_portfolio()
-
-    if not os.path.isfile("len_products.txt"):
-        with open("len_products.txt", "w") as f:
-            f.write(str(len(products)))
-        f.close()
-
+    
     UpdateCSVGiro = DegiroUpdateCSV()
 
-    UpdateCSVGiro.update_stocks()
+    excel_stocks = UpdateCSVGiro.get_excel_stocks()
 
-
+    UpdateCSVGiro.update_stocks(excel_stocks, DGF)

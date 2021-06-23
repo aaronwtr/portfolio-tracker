@@ -27,9 +27,8 @@ class DegiroFunctions:
             prod_id = product['id']
             prod_value = product['value']
             prod_info = self.degiro.product_info(prod_id)
-            prod_name = prod_info['name']
+            prod_name = prod_info['symbol']
 
-            if 'Morgan Stanley' not in prod_name:
-                product_and_value[prod_name] = prod_value
+            product_and_value[prod_name] = prod_value
 
         return product_and_value
