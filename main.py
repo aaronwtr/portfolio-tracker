@@ -1,7 +1,7 @@
 from degiro_tracker import DegiroFunctions
+from csv_updater import DegiroUpdateCSV
 from dotenv import load_dotenv
 import os
-
 
 """
     Portfolio Tracker
@@ -33,9 +33,11 @@ if __name__ == '__main__':
     load_dotenv()
 
     username, password = get_degiro_login()
-
-    DGF = DegiroFunctions()     # Instantiate DGF object
+    DGF = DegiroFunctions()  # Instantiate DGF object
     DGF.login(username, password)
-    products = DGF.fetch_portfolio()
+    
+    UpdateCSVGiro = DegiroUpdateCSV()
 
+    excel_stocks = UpdateCSVGiro.get_excel_stocks()
 
+    UpdateCSVGiro.update_stocks(excel_stocks, DGF)
