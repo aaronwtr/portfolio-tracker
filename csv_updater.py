@@ -61,3 +61,5 @@ class DegiroUpdateCSV:
         for summary in output_summary:
             print(summary)
 
+        print('\n\n')
+
