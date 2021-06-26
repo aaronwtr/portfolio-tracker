@@ -30,20 +30,22 @@ if __name__ == '__main__':
         Importing data from DeGiro API and updating the specified Excel file with the gathered data.
     """
 
-    # DGF = DegiroFunctions()  # Instantiate DGF object
-    # username, password = DGF.get_degiro_login()
-    # DGF.login(username, password)
-    #
-    # UpdateCSVGiro = DegiroUpdateCSV()
-    # excel_stocks, dict_old_value = UpdateCSVGiro.get_excel_stocks()
-    # UpdateCSVGiro.update_stocks(excel_stocks, dict_old_value, DGF, save=False)
-    #
-    # DGF.logout()
+    DGF = DegiroFunctions()  # Instantiate DGF object
+    username, password = DGF.get_degiro_login()
+    DGF.login(username, password)
+
+    UpdateCSVGiro = DegiroUpdateCSV()
+    excel_stocks, dict_old_value = UpdateCSVGiro.get_excel_stocks()
+    UpdateCSVGiro.update_stocks(excel_stocks, dict_old_value, DGF, save=False)
+
+    DGF.logout()
 
     """
         Importing data from Binance API and updating the specified Excel file with the gathered data.
     """
 
     BF = BinanceFunctions()
-    portfolio = BF.fetch_binance_portfolio()
+    portfolio = BF.getbalances()
+
+    print(portfolio)
 
