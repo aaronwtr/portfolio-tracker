@@ -1,6 +1,7 @@
 from degiro_tracker import DegiroFunctions
 from csv_updater import DegiroUpdateCSV
-from binance_tracker import BinanceFunctions
+from crypto_tracker import BinanceFunctions
+from crypto_tracker import BitvavoFunctions
 from dotenv import load_dotenv
 import os
 
@@ -35,17 +36,23 @@ if __name__ == '__main__':
     DGF.login(username, password)
 
     UpdateCSVGiro = DegiroUpdateCSV()
-    excel_stocks, dict_old_value = UpdateCSVGiro.get_excel_stocks()
-    UpdateCSVGiro.update_stocks(excel_stocks, dict_old_value, DGF, save=False)
+    # excel_stocks, dict_old_value = UpdateCSVGiro.get_excel_stocks()
+    # UpdateCSVGiro.update_stocks(excel_stocks, dict_old_value, DGF, save=False)
 
     DGF.logout()
 
     """
-        Importing data from Binance API and updating the specified Excel file with the gathered data.
+        Importing data from Binance API and Bitvavo API and updating the specified Excel file with the gathered data.
     """
 
     BF = BinanceFunctions()
-    portfolio = BF.getbalances()
+    binance_portfolio = BF.get_balances()
 
-    print(portfolio)
+    BV = BitvavoFunctions()
+    bitvavo_portfolio = BV.get_balances()
+    print(binance_portfolio)
+    print(bitvavo_portfolio)
 
+    # ERROR IN BINANCE DATA FETCHING
+
+    # processed_portfolio = BF.process_balances(portfolio)

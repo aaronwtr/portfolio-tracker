@@ -1,5 +1,7 @@
 from binance.client import Client
 import os
+from python_bitvavo_api.bitvavo import Bitvavo
+
 
 """
 Note that this module can not account for staking gains as of yet.
@@ -60,11 +62,33 @@ class BinanceFunctions:
                     except:
                         pass
 
-                actualBalances[asset] = {'amount': quantity,
-                                         'BTC_value': btcvalue,
-                                         'Euro_value': eurovalue}
+                actualBalances[asset] = round(eurovalue, 2)
 
         return actualBalances
 
-    def process_balances(self):
-        
+class BitvavoFunctions:
+    def __init__(self):
+        self.bitvavo = Bitvavo({
+            'APIKEY': os.getenv('BITVAVO_API_KEY'),
+            'APISECRET': os.getenv('BITVAVO_SECRET_KEY'),
+            'RESTURL': 'https://api.bitvavo.com/v2',
+            'WSURL': 'wss://ws.bitvavo.com/v2/',
+            'ACCESSWINDOW': 10000,
+            'DEBUGGING': False
+        })
+
+    def get_balances(self):
+        print('Fetching Bitvavo data...')
+        balances = self.bitvavo.balance({})
+        tickers = self.bitvavo.tickerPrice({})
+
+        actualBalances = {}
+        for crypto_dict in balances:
+            crypto_sym = crypto_dict['symbol']
+            crypto_sym_check = '{}-EUR'.format(crypto_sym)
+            for ticker_dict in tickers:
+                ticker_sym = ticker_dict['market']
+                if crypto_sym_check == ticker_sym:
+                    actualBalances[crypto_sym] = round(float(crypto_dict['available'])*float(ticker_dict['price']), 2)
+
+        return actualBalances
