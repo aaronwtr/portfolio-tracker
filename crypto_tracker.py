@@ -1,6 +1,8 @@
 from binance.client import Client
-import os
 from python_bitvavo_api.bitvavo import Bitvavo
+import os
+from currency_converter import CurrencyConverter
+
 
 
 """
@@ -16,55 +18,42 @@ class BinanceFunctions:
         self.client = Client(self.api_key, self.api_secret)  # Login
 
     def get_balances(self):
-        info = self.client.get_account()
-        allBalances = info['balances']
-        actualBalances = {}
-        BTCtoEuro = float(self.client.get_avg_price(symbol='BTCEUR')['price'])
-        USDTtoEuro = float(self.client.get_avg_price(symbol='EURUSDT')['price'])
-        print("Fetching Binance wallet data...")
-        for bal in allBalances:
-            if not bal['free'] == bal['locked']:
-                asset = bal['asset']
-                quantity = float(bal['free']) + float(bal['locked'])
+        assets = self.client.get_account()['balances']
+        prices_usd = self.client.get_all_tickers()
+        binance_wallet_temp = {}
+        for asset in assets:
+            if float(asset['free']) != 0.00000000:
+                binance_wallet_temp[asset['asset']] = asset['free']
+            elif float(asset['locked']) != 0.00000000:
+                binance_wallet_temp[asset['asset']] = asset['locked']
+            else:
+                continue
 
-                if asset == 'EUR':
-                    btcvalue = quantity / BTCtoEuro
-                    eurovalue = quantity
-                if asset == 'USDT' or asset == 'BUSD':
-                    continue
+        wallet_sym1 = list(binance_wallet_temp.keys())
 
-                if asset == 'BTC':
-                    btcvalue = quantity
-                    eurovalue = btcvalue * BTCtoEuro
-                else:
-                    try:
-                        btcvalue = float(self.client.get_avg_price(symbol=asset + 'BTC')['price']) * quantity
-                        eurovalue = btcvalue * BTCtoEuro
-                    except:
-                        pass
-                    try:
-                        btcvalue = float(self.client.get_avg_price(symbol=asset + 'BNB')['price']) * quantity
-                        btcvalue = float(self.client.get_avg_price(symbol='BNBBTC')['price']) * btcvalue
-                        eurovalue = btcvalue * BTCtoEuro
-                    except:
-                        pass
+        # We will now remove the LD part of the tickers. Note that this will affect cryptocurrencies that have LD as
+        # their starting letters.
 
-                    try:
-                        eurovalue = float(self.client.get_avg_price(symbol=asset + 'EUR')['price']) * quantity
-                        btcvalue = eurovalue / BTCtoEuro
-                    except:
-                        pass
+        binance_wallet_amount = {}
+        for sym1 in wallet_sym1:
+            if sym1[0:2] == 'LD' and sym1[2:] not in binance_wallet_temp:
+                binance_wallet_amount[str(sym1[2:])] = float(binance_wallet_temp[sym1])
+            elif sym1[2:] in binance_wallet_temp:
+                binance_wallet_amount[str(sym1[2:])] = (float(binance_wallet_temp[sym1]) +
+                                                        float(binance_wallet_temp[sym1[2:]]))
+            else:
+                binance_wallet_amount[sym1] = float(binance_wallet_temp[sym1])
 
-                    try:
-                        usdtvalue = float(self.client.get_avg_price(symbol=asset + 'USDT')['price']) * quantity
-                        eurovalue = usdtvalue / USDTtoEuro
-                        btcvalue = eurovalue / BTCtoEuro
-                    except:
-                        pass
+        cc = CurrencyConverter()
+        wallet_keys = list(binance_wallet_amount.keys())
+        binance_wallet = {}
+        for asset in wallet_keys:
+            for pair in prices_usd:
+                if pair['symbol'] == '{}USDT'.format(asset):
+                    binance_wallet[asset] = round(cc.convert(float(binance_wallet_amount[asset])*float(pair['price']), 'USD', 'EUR'), 2)
 
-                actualBalances[asset] = round(eurovalue, 2)
-
-        return actualBalances
+        return binance_wallet
+        # DEBUG: FIND A WAY TO IMPLEMENT FIXED PRODUCTS
 
 class BitvavoFunctions:
     def __init__(self):

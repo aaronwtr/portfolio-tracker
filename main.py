@@ -50,9 +50,5 @@ if __name__ == '__main__':
 
     BV = BitvavoFunctions()
     bitvavo_portfolio = BV.get_balances()
-    print(binance_portfolio)
-    print(bitvavo_portfolio)
-
-    # ERROR IN BINANCE DATA FETCHING
 
     # processed_portfolio = BF.process_balances(portfolio)
