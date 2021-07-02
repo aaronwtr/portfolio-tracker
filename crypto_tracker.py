@@ -3,21 +3,21 @@ from python_bitvavo_api.bitvavo import Bitvavo
 import os
 from currency_converter import CurrencyConverter
 
-
-
 """
 Note that this module can not account for staking gains as of yet.
 """
 
+
 class BinanceFunctions:
 
     def __init__(self):
-        self.api_key = os.getenv('BINANCE_API_KEY')     # Fetch API keys
+        self.api_key = os.getenv('BINANCE_API_KEY')  # Fetch API keys
         self.api_secret = os.getenv('BINANCE_SECRET_KEY')
 
         self.client = Client(self.api_key, self.api_secret)  # Login
 
     def get_balances(self):
+        print('Fetching Binance data...')
         assets = self.client.get_account()['balances']
         prices_usd = self.client.get_all_tickers()
         binance_wallet_temp = {}
@@ -50,10 +50,12 @@ class BinanceFunctions:
         for asset in wallet_keys:
             for pair in prices_usd:
                 if pair['symbol'] == '{}USDT'.format(asset):
-                    binance_wallet[asset] = round(cc.convert(float(binance_wallet_amount[asset])*float(pair['price']), 'USD', 'EUR'), 2)
+                    binance_wallet[asset] = round(
+                        cc.convert(float(binance_wallet_amount[asset]) * float(pair['price']), 'USD', 'EUR'), 2)
 
         return binance_wallet
         # DEBUG: FIND A WAY TO IMPLEMENT FIXED PRODUCTS
+
 
 class BitvavoFunctions:
     def __init__(self):
@@ -78,6 +80,6 @@ class BitvavoFunctions:
             for ticker_dict in tickers:
                 ticker_sym = ticker_dict['market']
                 if crypto_sym_check == ticker_sym:
-                    actualBalances[crypto_sym] = round(float(crypto_dict['available'])*float(ticker_dict['price']), 2)
+                    actualBalances[crypto_sym] = round(float(crypto_dict['available']) * float(ticker_dict['price']), 2)
 
         return actualBalances

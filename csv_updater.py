@@ -1,7 +1,6 @@
 import os
 import pandas as pd
 import openpyxl as pyxl
-from degiro_tracker import DegiroFunctions
 
 
 class DegiroUpdateCSV:

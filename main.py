@@ -3,7 +3,6 @@ from csv_updater import DegiroUpdateCSV
 from crypto_tracker import BinanceFunctions
 from crypto_tracker import BitvavoFunctions
 from dotenv import load_dotenv
-import os
 
 """
     Portfolio Tracker
@@ -36,8 +35,8 @@ if __name__ == '__main__':
     DGF.login(username, password)
 
     UpdateCSVGiro = DegiroUpdateCSV()
-    # excel_stocks, dict_old_value = UpdateCSVGiro.get_excel_stocks()
-    # UpdateCSVGiro.update_stocks(excel_stocks, dict_old_value, DGF, save=False)
+    excel_stocks, dict_old_value = UpdateCSVGiro.get_excel_stocks()
+    UpdateCSVGiro.update_stocks(excel_stocks, dict_old_value, DGF, save=True)
 
     DGF.logout()
 
@@ -47,8 +46,8 @@ if __name__ == '__main__':
 
     BF = BinanceFunctions()
     binance_portfolio = BF.get_balances()
+    print(binance_portfolio)
 
     BV = BitvavoFunctions()
     bitvavo_portfolio = BV.get_balances()
-
-    # processed_portfolio = BF.process_balances(portfolio)
+    print(bitvavo_portfolio)
