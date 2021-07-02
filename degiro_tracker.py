@@ -1,10 +1,16 @@
 import degiroapi
-
+import os
 
 class DegiroFunctions:
 
     def __init__(self):
         self.degiro = degiroapi.DeGiro()
+
+    def get_degiro_login(self):
+        username = os.getenv("DEGIRO_USERNAME")
+        password = os.getenv("DEGIRO_PASSWORD")
+
+        return username, password
 
     def login(self, username, password):
         self.degiro.login(username, password)
@@ -13,6 +19,7 @@ class DegiroFunctions:
         self.degiro.logout()
 
     def fetch_portfolio(self):
+        print('Fetching data from DeGiro API...\n')
         portfolio = self.degiro.getdata(degiroapi.Data.Type.PORTFOLIO, True)
         products = []
 

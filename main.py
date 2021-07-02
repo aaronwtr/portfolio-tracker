@@ -1,7 +1,8 @@
 from degiro_tracker import DegiroFunctions
 from csv_updater import DegiroUpdateCSV
+from crypto_tracker import BinanceFunctions
+from crypto_tracker import BitvavoFunctions
 from dotenv import load_dotenv
-import os
 
 """
     Portfolio Tracker
@@ -22,20 +23,31 @@ import os
 """
 
 
-def get_degiro_login():
-    username = os.getenv("DEGIRO_USERNAME")
-    password = os.getenv("DEGIRO_PASSWORD")
-
-    return username, password
-
-
 if __name__ == '__main__':
     load_dotenv()
 
-    username, password = get_degiro_login()
+    """
+        Importing data from DeGiro API and updating the specified Excel file with the gathered data.
+    """
+
     DGF = DegiroFunctions()  # Instantiate DGF object
+    username, password = DGF.get_degiro_login()
     DGF.login(username, password)
 
     UpdateCSVGiro = DegiroUpdateCSV()
     excel_stocks, dict_old_value = UpdateCSVGiro.get_excel_stocks()
     UpdateCSVGiro.update_stocks(excel_stocks, dict_old_value, DGF, save=True)
+
+    DGF.logout()
+
+    """
+        Importing data from Binance API and Bitvavo API and updating the specified Excel file with the gathered data.
+    """
+
+    BF = BinanceFunctions()
+    binance_portfolio = BF.get_balances()
+    print(binance_portfolio)
+
+    BV = BitvavoFunctions()
+    bitvavo_portfolio = BV.get_balances()
+    print(bitvavo_portfolio)

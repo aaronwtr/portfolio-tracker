@@ -1,7 +1,6 @@
 import os
 import pandas as pd
 import openpyxl as pyxl
-from degiro_tracker import DegiroFunctions
 
 
 class DegiroUpdateCSV:
@@ -60,4 +59,6 @@ class DegiroUpdateCSV:
 
         for summary in output_summary:
             print(summary)
+
+        print('\n')
 
