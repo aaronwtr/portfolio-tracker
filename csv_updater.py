@@ -47,7 +47,12 @@ class DegiroUpdateCSV:
             ws['J{}'.format(key)].value = price_new
 
             price_old = round(dict_old_value[value], 2)
-            output_summary.append('{}: {} --> {}'.format(value, price_old, price_new))
+
+            percentage_change = round(((price_new - price_old)/price_old)*100, 2)
+            if percentage_change > 0:
+                percentage_change = '+{}'.format(percentage_change)
+
+            output_summary.append('{}: {} --> {} ({}%)'.format(value, price_old, price_new, percentage_change))
 
         if save:
             wb.save(self.portfolio_path)    # In order to make changes have effect, put save = True
