@@ -5,6 +5,7 @@ from crypto_tracker import BitvavoFunctions
 from stockx_tracker import StockXFunctions
 from dotenv import load_dotenv
 
+
 """
     Portfolio Tracker
     Copyright (C) 2021  Aaron Wenteler
@@ -31,32 +32,34 @@ if __name__ == '__main__':
         Importing data from DeGiro API and updating the specified Excel file with the gathered data.
     """
 
-    DGF = DegiroFunctions()  # Instantiate DGF object
-    username, password = DGF.get_degiro_login()
-    DGF.login(username, password)
-
-    UpdateCSVGiro = DegiroUpdateCSV()
-    excel_stocks, dict_old_value = UpdateCSVGiro.get_excel_stocks()
-    UpdateCSVGiro.update_stocks(excel_stocks, dict_old_value, DGF, save=True)
-
-    DGF.logout()
+    # DGF = DegiroFunctions()  # Instantiate DGF object
+    # username, password = DGF.get_degiro_login()
+    # DGF.login(username, password)
+    #
+    # UpdateCSVGiro = DegiroUpdateCSV()
+    # excel_stocks, dict_old_value = UpdateCSVGiro.get_excel_stocks()
+    # UpdateCSVGiro.update_stocks(excel_stocks, dict_old_value, DGF, save=True)
+    #
+    # DGF.logout()
 
     """
         Importing data from Binance API and Bitvavo API and updating the specified Excel file with the gathered data.
     """
 
-    BF = BinanceFunctions()
-    binance_portfolio = BF.get_balances()
-    print(binance_portfolio)
-
-    BV = BitvavoFunctions()
-    bitvavo_portfolio = BV.get_balances()
-    print(bitvavo_portfolio)
+    # BF = BinanceFunctions()
+    # binance_portfolio = BF.get_balances()
+    # print(binance_portfolio)
+    #
+    # BV = BitvavoFunctions()
+    # bitvavo_portfolio = BV.get_balances()
+    # print(bitvavo_portfolio)
 
     """
-        Scraping StockX, logging in and fetching portfolio. Than the price is calculated based on the previous 10 sales
+        Scraping StockX, logging in and fetching portfolio. Then, the price is calculated based on the previous 10 sales
         for that particular item.
     """
 
-    # StockX = StockXFunctions()
-    # StockX.scrape_stockx()
+    StockX = StockXFunctions()
+    inventory = StockX.get_inventory()
+
+    StockX.scrape_stockx(inventory)
