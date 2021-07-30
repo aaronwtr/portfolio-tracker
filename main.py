@@ -62,4 +62,6 @@ if __name__ == '__main__':
     StockX = StockXFunctions()
     inventory = StockX.get_inventory()
 
-    StockX.scrape_stockx(inventory)
+    inventory_prices = StockX.scrape_stockx(inventory)
+
+    print(inventory_prices)

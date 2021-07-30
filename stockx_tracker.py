@@ -34,26 +34,28 @@ class StockXFunctions:
         return items
 
     def scrape_stockx(self, items):
-        chrome_options = Options()
-        chrome_options.add_argument("--enable-javascript")
-
-        driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
-
+        item_prices = {}
+        print(items)
         for item in items:
+            chrome_options = Options()
+            chrome_options.add_argument("--enable-javascript")
+
+            driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
             google_search = str(item) + 'StockX'
 
             print('\n\nScraping ' + str(item) + '...')
 
+            links = []
             for result in search(google_search,  # The query you want to run
                                  lang='en',  # The language
-                                 num_results=1,  # Number of results per page
+                                 num_results=0,  # Number of results per page
                                  ):
+
                 link = result
 
                 driver.get(link)
 
                 time.sleep(1)
-
                 driver.find_element_by_class_name('chakra-modal__close-btn.css-17sthuj').click()
 
                 time.sleep(1)
@@ -69,12 +71,31 @@ class StockXFunctions:
                 try:
                     driver.find_element_by_class_name('chakra-button.css-xk3212').click()
                 except NoSuchElementException:
+                    driver.execute_script("window.scrollTo(0, 800)")
                     driver.find_element_by_xpath(
                         '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/div[2]/button').click()
                 except ElementClickInterceptedException:
-                    driver.execute_script("window.scrollTo(0, 800)")
-                    driver.find_element_by_xpath('//*[ @ id = "root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/ \
-                                           div[2]/button').click()
+                    try:
+                        print("Is there a text 'Thanks' overlay? (Y/N)")
+                        x = input()
+                        if x == 'N':
+                            driver.execute_script("window.scrollTo(0, 800)")
+                            driver.find_element_by_xpath('//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/ \
+                                                   div[2]/button').click()
+                        else:
+                            print("Type 'Done' if you closed the 'Thanks' overlay")
+                            y = input()
+                            if y == 'Done':
+                                driver.execute_script("window.scrollTo(0, 800)")
+                                driver.find_element_by_xpath('//*[@id ="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/ \
+                                                        div/button').click()
+                            else:
+                                print('Invalid input!')
+                    except ElementClickInterceptedException:
+                        driver.execute_script("window.scrollTo(0, 800)")
+                        driver.find_element_by_xpath('//*[@id ="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/ \
+                                                                                div/button').click()
+
 
                 time.sleep(1)
                 item_table = driver.find_elements_by_class_name('css-1ki54i')
@@ -92,8 +113,6 @@ class StockXFunctions:
                         if '\u20AC' in data and len(last_sales) != 10:
                             last_sales.append(int(data[1:]))
 
-                    print(last_sales)
-
                 except ValueError:
                     for i in item_table:
                         raw_data = str(i.text).split(sep=' ')
@@ -106,13 +125,12 @@ class StockXFunctions:
                             if '\u20AC' in data[0] and len(last_sales) != 10:
                                 last_sales.append(int(data[0][1:]))
 
-                    print(last_sales)
+                avg_price = sum(last_sales)/len(last_sales)
 
-                # CALCULATE AVERAGE
+                item_prices[item] = avg_price
 
-                while True:
-                    time.sleep(0.1)
+        driver.close()
+        driver.quit()
 
-                driver.quit()
 
-        return
+        return item_prices
