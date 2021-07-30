@@ -96,7 +96,6 @@ class StockXFunctions:
                         driver.find_element_by_xpath('//*[@id ="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/ \
                                                                                 div/button').click()
 
-
                 time.sleep(1)
                 item_table = driver.find_elements_by_class_name('css-1ki54i')
                 if len(item_table) == 0:
@@ -125,12 +124,11 @@ class StockXFunctions:
                             if '\u20AC' in data[0] and len(last_sales) != 10:
                                 last_sales.append(int(data[0][1:]))
 
-                avg_price = sum(last_sales)/len(last_sales)
+                avg_price = sum(last_sales) / len(last_sales)
 
                 item_prices[item] = avg_price
 
         driver.close()
         driver.quit()
-
 
         return item_prices
