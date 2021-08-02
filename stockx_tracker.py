@@ -35,19 +35,19 @@ class StockXFunctions:
 
     def scrape_stockx(self, items):
         item_prices = {}
-        print(items)
+
         for item in items:
             chrome_options = Options()
             chrome_options.add_argument("--enable-javascript")
 
             driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
-            google_search = str(item) + 'StockX'
+            google_search = str(item) + ' StockX'
 
             print('\n\nScraping ' + str(item) + '...')
 
             links = []
             for result in search(google_search,  # The query you want to run
-                                 lang='en',  # The language
+                                 lang='nl',  # The language
                                  num_results=0,  # Number of results per page
                                  ):
 
@@ -55,46 +55,39 @@ class StockXFunctions:
 
                 driver.get(link)
 
-                time.sleep(1)
+                time.sleep(0.1)
                 driver.find_element_by_class_name('chakra-modal__close-btn.css-17sthuj').click()
 
-                time.sleep(1)
+                time.sleep(0.1)
 
                 driver.find_element_by_class_name('css-unzfas-button').click()
 
-                time.sleep(1)
+                time.sleep(0.1)
 
                 driver.execute_script("window.scrollTo(0, 1000)")
 
-                time.sleep(1)
+                time.sleep(0.1)
 
                 try:
                     driver.find_element_by_class_name('chakra-button.css-xk3212').click()
                 except NoSuchElementException:
-                    driver.execute_script("window.scrollTo(0, 800)")
-                    driver.find_element_by_xpath(
-                        '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/div[2]/button').click()
-                except ElementClickInterceptedException:
                     try:
-                        print("Is there a text 'Thanks' overlay? (Y/N)")
-                        x = input()
-                        if x == 'N':
-                            driver.execute_script("window.scrollTo(0, 800)")
-                            driver.find_element_by_xpath('//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/ \
-                                                   div[2]/button').click()
-                        else:
-                            print("Type 'Done' if you closed the 'Thanks' overlay")
-                            y = input()
-                            if y == 'Done':
-                                driver.execute_script("window.scrollTo(0, 800)")
-                                driver.find_element_by_xpath('//*[@id ="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/ \
-                                                        div/button').click()
-                            else:
-                                print('Invalid input!')
+                        driver.execute_script("window.scrollTo(0, 800)")
+                        driver.find_element_by_xpath(
+                            '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/div[2]/button').click()
+                        time.sleep(0.1)
                     except ElementClickInterceptedException:
                         driver.execute_script("window.scrollTo(0, 800)")
-                        driver.find_element_by_xpath('//*[@id ="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/ \
-                                                                                div/button').click()
+                        driver.find_element_by_xpath(
+                            '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/div/button').click()
+                        time.sleep(0.1)
+                        driver.find_element_by_xpath(
+                            '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/div[2]/button').click()
+
+                except ElementClickInterceptedException:
+                    driver.execute_script("window.scrollTo(0, 800)")
+                    driver.find_element_by_xpath('//*[@id ="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/ \
+                                                                            div/button').click()
 
                 time.sleep(1)
                 item_table = driver.find_elements_by_class_name('css-1ki54i')
@@ -126,9 +119,9 @@ class StockXFunctions:
 
                 avg_price = sum(last_sales) / len(last_sales)
 
-                item_prices[item] = avg_price
+                item_prices[item] = round(avg_price, 2)
 
-        driver.close()
-        driver.quit()
+                driver.close()
+                driver.quit()
 
         return item_prices
