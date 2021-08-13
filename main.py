@@ -2,7 +2,9 @@ from degiro_tracker import DegiroFunctions
 from csv_updater import DegiroUpdateCSV
 from crypto_tracker import BinanceFunctions
 from crypto_tracker import BitvavoFunctions
+from stockx_tracker import StockXFunctions
 from dotenv import load_dotenv
+
 
 """
     Portfolio Tracker
@@ -51,3 +53,15 @@ if __name__ == '__main__':
     BV = BitvavoFunctions()
     bitvavo_portfolio = BV.get_balances()
     print(bitvavo_portfolio)
+
+    """
+        Scraping StockX, logging in and fetching portfolio. Then, the price is calculated based on the previous 10 sales
+        for that particular item.
+    """
+
+    StockX = StockXFunctions()
+    inventory = StockX.get_inventory()
+
+    inventory_prices = StockX.scrape_stockx(inventory)
+
+    print(inventory_prices)
