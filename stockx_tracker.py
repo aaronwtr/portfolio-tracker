@@ -1,7 +1,6 @@
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementClickInterceptedException
 from webdriver_manager.chrome import ChromeDriverManager
@@ -10,8 +9,6 @@ import pandas as pd
 from googlesearch import search
 import pickle
 from datetime import date
-import openpyxl as pyxl
-from lxml import html
 
 
 class StockXFunctions:
@@ -36,8 +33,6 @@ class StockXFunctions:
         return items
 
     def scrape_stockx(self, items):
-        item_prices = {}
-
         raw_prior_inventory_data = open("item_prices.pkl", "rb")
         prior_inventory_data = pickle.load(raw_prior_inventory_data)
 
@@ -105,6 +100,7 @@ class StockXFunctions:
                                 '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/div[2]/button').click()
                         except ElementClickInterceptedException:
                             print('koekoek')
+                            driver.execute_script("window.scrollTo(0, 300)")
                             driver.find_element_by_xpath(
                                 '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/div/button').click()
 
@@ -114,7 +110,8 @@ class StockXFunctions:
                                                                             div/button').click()
 
                 try:
-                    driver.find_element_by_xpath('//*[@id="root"]/div[1]/div[2]/div[2]/div[2]/section/div/div/div/div[1]/div[2]/button').click()
+                    driver.find_element_by_xpath(
+                        '//*[@id="root"]/div[1]/div[2]/div[2]/div[2]/section/div/div/div/div[1]/div[2]/button').click()
                 except (ElementClickInterceptedException, NoSuchElementException):
                     pass
 
@@ -146,13 +143,18 @@ class StockXFunctions:
                             if '\u20AC' in data[0] and len(last_sales) != 10:
                                 last_sales.append(int(data[0][1:]))
 
-                avg_price = sum(last_sales) / len(last_sales)
-
-                item_price_data.append(round(avg_price, 2))
+                try:
+                    avg_price = sum(last_sales) / len(last_sales)
+                    item_price_data.append(round(avg_price, 2))
+                except ZeroDivisionError:
+                    item_price_data.append("Look up price manually!")
 
                 item_price_data.append(string_today)
 
-                item_prices[item] = item_price_data
+                item_price_temp = {item: item_price_data}
+
+                item_prices = prior_inventory_data
+                item_prices.update(item_price_temp)
 
                 print(str(item_price_data) + " is added to the datafile!")
                 save_item_prices = open("item_prices.pkl", "rb+")
@@ -162,4 +164,4 @@ class StockXFunctions:
                 driver.close()
                 driver.quit()
 
-        return save_item_prices
+        return
