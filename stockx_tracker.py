@@ -1,15 +1,14 @@
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementClickInterceptedException
 from webdriver_manager.chrome import ChromeDriverManager
 import os
 import pandas as pd
 from googlesearch import search
-import openpyxl as pyxl
-from lxml import html
+import pickle
+from datetime import date
 
 
 class StockXFunctions:
@@ -29,14 +28,28 @@ class StockXFunctions:
                                            header=self.header_value - 2, usecols="A:F",
                                            nrows=self.num_items)
 
-        items = list(sneakers_inventory["Inventaris"])
+        items = sneakers_inventory["Inventaris"]
 
         return items
 
     def scrape_stockx(self, items):
-        item_prices = {}
+        raw_prior_inventory_data = open("item_prices.pkl", "rb")
+        prior_inventory_data = pickle.load(raw_prior_inventory_data)
+
+        count = 0
 
         for item in items:
+            today = date.today()
+            string_today = today.strftime("%d/%m/%Y")
+
+            prior_items = list(prior_inventory_data.keys())
+
+            if item in prior_items:
+                item_last_retrieved = prior_inventory_data[item][1]
+                if item_last_retrieved == string_today:
+                    continue
+
+            count += 1
             chrome_options = Options()
             chrome_options.add_argument("--enable-javascript")
 
@@ -45,7 +58,8 @@ class StockXFunctions:
 
             print('\n\nScraping ' + str(item) + '...')
 
-            links = []
+            item_price_data = []
+
             for result in search(google_search,  # The query you want to run
                                  lang='nl',  # The language
                                  num_results=0,  # Number of results per page
@@ -77,17 +91,29 @@ class StockXFunctions:
                             '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/div[2]/button').click()
                         time.sleep(0.1)
                     except ElementClickInterceptedException:
-                        driver.execute_script("window.scrollTo(0, 800)")
-                        driver.find_element_by_xpath(
-                            '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/div/button').click()
-                        time.sleep(0.1)
-                        driver.find_element_by_xpath(
-                            '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/div[2]/button').click()
+                        try:
+                            driver.execute_script("window.scrollTo(0, 800)")
+                            driver.find_element_by_xpath(
+                                '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/div/button').click()
+                            time.sleep(0.1)
+                            driver.find_element_by_xpath(
+                                '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/div[2]/button').click()
+                        except ElementClickInterceptedException:
+                            print('koekoek')
+                            driver.execute_script("window.scrollTo(0, 300)")
+                            driver.find_element_by_xpath(
+                                '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/div/button').click()
 
                 except ElementClickInterceptedException:
                     driver.execute_script("window.scrollTo(0, 800)")
                     driver.find_element_by_xpath('//*[@id ="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/ \
                                                                             div/button').click()
+
+                try:
+                    driver.find_element_by_xpath(
+                        '//*[@id="root"]/div[1]/div[2]/div[2]/div[2]/section/div/div/div/div[1]/div[2]/button').click()
+                except (ElementClickInterceptedException, NoSuchElementException):
+                    pass
 
                 time.sleep(1)
                 item_table = driver.find_elements_by_class_name('css-1ki54i')
@@ -117,11 +143,25 @@ class StockXFunctions:
                             if '\u20AC' in data[0] and len(last_sales) != 10:
                                 last_sales.append(int(data[0][1:]))
 
-                avg_price = sum(last_sales) / len(last_sales)
+                try:
+                    avg_price = sum(last_sales) / len(last_sales)
+                    item_price_data.append(round(avg_price, 2))
+                except ZeroDivisionError:
+                    item_price_data.append("Look up price manually!")
 
-                item_prices[item] = round(avg_price, 2)
+                item_price_data.append(string_today)
+
+                item_price_temp = {item: item_price_data}
+
+                item_prices = prior_inventory_data
+                item_prices.update(item_price_temp)
+
+                print(str(item_price_data) + " is added to the datafile!")
+                save_item_prices = open("item_prices.pkl", "rb+")
+                pickle.dump(item_prices, save_item_prices)
+                save_item_prices.close()
 
                 driver.close()
                 driver.quit()
 
-        return item_prices
+        return

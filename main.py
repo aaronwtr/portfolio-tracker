@@ -4,6 +4,7 @@ from crypto_tracker import BinanceFunctions
 from crypto_tracker import BitvavoFunctions
 from stockx_tracker import StockXFunctions
 from dotenv import load_dotenv
+import pickle
 
 
 """
@@ -38,7 +39,7 @@ if __name__ == '__main__':
 
     UpdateCSVGiro = DegiroUpdateCSV()
     excel_stocks, dict_old_value = UpdateCSVGiro.get_excel_stocks()
-    UpdateCSVGiro.update_stocks(excel_stocks, dict_old_value, DGF, save=True)
+    UpdateCSVGiro.update_stocks(excel_stocks, dict_old_value, DGF, save=False)
 
     DGF.logout()
 
@@ -62,6 +63,9 @@ if __name__ == '__main__':
     StockX = StockXFunctions()
     inventory = StockX.get_inventory()
 
-    inventory_prices = StockX.scrape_stockx(inventory)
+    StockX.scrape_stockx(inventory)     # This function creates a .pkl file that is externally so multiple runs can be
+                                        # performed in the case of discontinuations.
 
-    print(inventory_prices)
+    StockXOutput = open("item_prices.pkl", "rb")
+    stockx_prices = pickle.load(StockXOutput)
+    print(stockx_prices)
