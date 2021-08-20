@@ -29,14 +29,27 @@ class StockXFunctions:
                                            nrows=self.num_items)
 
         items = sneakers_inventory["Inventaris"]
+        sizes = sneakers_inventory["Maat"]
 
-        return items
+        items_n_sizes = dict(zip(items, sizes))
 
-    def scrape_stockx(self, items):
-        raw_prior_inventory_data = open("item_prices.pkl", "rb")
-        prior_inventory_data = pickle.load(raw_prior_inventory_data)
+        return items_n_sizes
+
+    def scrape_stockx(self, items_n_sizes):
+        try:
+            raw_prior_inventory_data = open("item_prices.pkl", "rb")
+        except FileNotFoundError:
+            open("item_prices.pkl", "a").close()
+            raw_prior_inventory_data = open("item_prices.pkl", "rb")
+
+        try:
+            prior_inventory_data = pickle.load(raw_prior_inventory_data)
+        except EOFError:
+            prior_inventory_data = {}
 
         count = 0
+
+        items = list(items_n_sizes.keys())
 
         for item in items:
             today = date.today()
@@ -78,6 +91,19 @@ class StockXFunctions:
 
                 time.sleep(0.1)
 
+                if items_n_sizes[item] != 'N.A':
+                    try:
+                        driver.find_element_by_xpath('//*[@id="menu-button-pdp-size-selector"]').click()
+                    except NoSuchElementException:
+                        driver.find_element_by_class_name('chakra-button.chakra-menu__menu-button.btn.btn-default.size-sm.css-4wr9nv').click()
+                    time.sleep(0.1)
+                    print("Size we want to click is " + str(items_n_sizes[item]))
+
+                    buttons = driver.find_elements_by_css_selector("chakra-stat__label.css-nszg6y")
+                    print(buttons)
+                    for button in buttons:
+                        print(button)       # BUG: looks like css_selector returns empty array. Use class_name or css_selector?
+
                 driver.execute_script("window.scrollTo(0, 1000)")
 
                 time.sleep(0.1)
@@ -90,7 +116,7 @@ class StockXFunctions:
                         driver.find_element_by_xpath(
                             '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/div[2]/button').click()
                         time.sleep(0.1)
-                    except ElementClickInterceptedException:
+                    except (ElementClickInterceptedException, NoSuchElementException):
                         try:
                             driver.execute_script("window.scrollTo(0, 800)")
                             driver.find_element_by_xpath(
@@ -98,22 +124,18 @@ class StockXFunctions:
                             time.sleep(0.1)
                             driver.find_element_by_xpath(
                                 '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/div[2]/button').click()
-                        except ElementClickInterceptedException:
-                            print('koekoek')
-                            driver.execute_script("window.scrollTo(0, 300)")
-                            driver.find_element_by_xpath(
-                                '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/div/button').click()
+                        except (ElementClickInterceptedException, NoSuchElementException):
+                            try:
+                                driver.execute_script("window.scrollTo(0, 300)")
+                                driver.find_element_by_xpath(
+                                    '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/div/button').click()
+                            except (ElementClickInterceptedException, NoSuchElementException):
+                                driver.find_element_by_xpath('//*[@id="root"]/div[1]/div[2]/div[2]/div[2]/section/div/div/div/div[1]/div[2]/button')
 
                 except ElementClickInterceptedException:
                     driver.execute_script("window.scrollTo(0, 800)")
                     driver.find_element_by_xpath('//*[@id ="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[2]/ \
                                                                             div/button').click()
-
-                try:
-                    driver.find_element_by_xpath(
-                        '//*[@id="root"]/div[1]/div[2]/div[2]/div[2]/section/div/div/div/div[1]/div[2]/button').click()
-                except (ElementClickInterceptedException, NoSuchElementException):
-                    pass
 
                 time.sleep(1)
                 item_table = driver.find_elements_by_class_name('css-1ki54i')
