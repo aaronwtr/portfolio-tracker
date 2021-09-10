@@ -9,6 +9,7 @@ import pandas as pd
 from googlesearch import search
 import pickle
 from datetime import date
+import numpy as np
 
 
 class StockXFunctions:
@@ -33,8 +34,19 @@ class StockXFunctions:
         return items
 
     def scrape_stockx(self, items):
-        raw_prior_inventory_data = open("item_prices.pkl", "rb")
-        prior_inventory_data = pickle.load(raw_prior_inventory_data)
+        updated_items = []
+        for item in items:
+            if type(item) != float:
+                updated_items.append(item)
+
+        items = updated_items
+        
+        try:
+            raw_prior_inventory_data = open("item_prices.pkl", "rb")
+            prior_inventory_data = pickle.load(raw_prior_inventory_data)
+        except (FileNotFoundError, EOFError):
+            open("item_prices.pkl", "w")
+            prior_inventory_data = {}
 
         count = 0
 
@@ -44,10 +56,11 @@ class StockXFunctions:
 
             prior_items = list(prior_inventory_data.keys())
 
-            if item in prior_items:
-                item_last_retrieved = prior_inventory_data[item][1]
-                if item_last_retrieved == string_today:
-                    continue
+            if prior_items:
+                if item in prior_items:
+                    item_last_retrieved = prior_inventory_data[item][1]
+                    if item_last_retrieved == string_today:
+                        continue
 
             count += 1
             chrome_options = Options()
