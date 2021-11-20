@@ -83,7 +83,7 @@ class StockXFunctions:
                 driver.get(link)
 
                 time.sleep(0.1)
-                driver.find_element_by_class_name('chakra-modal__close-btn.css-17sthuj').click()
+                driver.find_element_by_class_name('chakra-modal__close-btn.css-1iqbypn').click()
 
                 time.sleep(0.1)
 
@@ -101,7 +101,7 @@ class StockXFunctions:
                     try:
                         driver.execute_script("window.scrollTo(0, 800)")
                         driver.find_element_by_xpath(
-                            '//*[@id="root"]/div[1]/div[2]/div[2]/div[9]/div/div/div/div[2]/div/div[1]/div[2]/button').click()
+                            '//*[@id="main-content"]/div/section[4]/div/div/div/div/div[1]/div[2]/button').click()
                         time.sleep(0.1)
                     except ElementClickInterceptedException:
                         try:

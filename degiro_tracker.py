@@ -32,7 +32,10 @@ class DegiroFunctions:
             prod_value = product['value']
             prod_info = self.degiro.product_info(prod_id)
             prod_name = prod_info['symbol']
-
             product_and_value[prod_name] = prod_value
+
+        with open('len_products.txt', 'w') as f:
+            f.write(str(len(product_and_value) - 3))
+
 
         return product_and_value

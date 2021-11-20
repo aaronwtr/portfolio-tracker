@@ -7,6 +7,7 @@ class DegiroUpdateCSV:
     def __init__(self):
         with open("len_products.txt", "r") as f:
             self.products = int(f.read())
+        f.close()
 
         self.portfolio_path = os.getenv("PORTFOLIO_CSV")
         self.header_value = 15  # Start of stock portfolio rows
@@ -14,7 +15,7 @@ class DegiroUpdateCSV:
     def get_excel_stocks(self):
         stocks_portfolio = pd.read_excel(self.portfolio_path, sheet_name='Stocks portfolio',
                                          header=self.header_value - 2, usecols="A:J",
-                                         nrows=self.products - 1)
+                                         nrows=self.products)
 
         excel_stocks = list(stocks_portfolio["Code"])
         stocks_value_old = list(stocks_portfolio["Huidige waarde"])
@@ -24,12 +25,10 @@ class DegiroUpdateCSV:
         return excel_stocks, dict_old_value
 
     def update_stocks(self, excel_stocks, dict_old_value, DGF, save=False):
-
         wb = pyxl.load_workbook(filename=self.portfolio_path)
         ws = wb.worksheets[0]
 
         products = DGF.fetch_portfolio()
-
         if not os.path.isfile("len_products.txt"):
             with open("len_products.txt", "w") as f:
                 f.write(str(len(products)))

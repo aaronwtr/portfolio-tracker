@@ -33,6 +33,7 @@ if __name__ == '__main__':
         Importing data from DeGiro API and updating the specified Excel file with the gathered data.
     """
 
+    # Note: if the number of stocks changes, you need to manually update the number of rows in the get_excel_stocks() function.
     DGF = DegiroFunctions()  # Instantiate DGF object
     username, password = DGF.get_degiro_login()
     DGF.login(username, password)
