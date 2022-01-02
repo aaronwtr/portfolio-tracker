@@ -21,7 +21,6 @@ class DegiroUpdateCSV:
         stocks_value_old = list(stocks_portfolio["Huidige waarde"])
 
         dict_old_value = dict(zip(excel_stocks, stocks_value_old))
-
         return excel_stocks, dict_old_value
 
     def update_stocks(self, excel_stocks, dict_old_value, DGF, save=False):
