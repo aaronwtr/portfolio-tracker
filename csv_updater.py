@@ -28,12 +28,14 @@ class DegiroUpdateCSV:
         ws = wb.worksheets[0]
 
         products = DGF.fetch_portfolio()
+        ws['E6'].value = products['EUR']
+
         if not os.path.isfile("len_products.txt"):
             with open("len_products.txt", "w") as f:
                 f.write(str(len(products)))
             f.close()
 
-        count = self.header_value
+        count = self.products - 1
         excel_stock_loc = {}
         for i in range(len(excel_stocks)):
             excel_stock_loc[count] = excel_stocks[i]

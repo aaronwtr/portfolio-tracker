@@ -35,7 +35,6 @@ class DegiroFunctions:
             product_and_value[prod_name] = prod_value
 
         with open('len_products.txt', 'w') as f:
-            f.write(str(len(product_and_value) - 4))
-
+            f.write(str(len(product_and_value) - 1))
 
         return product_and_value
