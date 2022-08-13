@@ -19,7 +19,6 @@ class DegiroUpdateCSV:
 
         excel_stocks = list(stocks_portfolio["Code"])
         stocks_value_old = list(stocks_portfolio["Huidige waarde"])
-
         dict_old_value = dict(zip(excel_stocks, stocks_value_old))
         return excel_stocks, dict_old_value
 
@@ -28,21 +27,24 @@ class DegiroUpdateCSV:
         ws = wb.worksheets[0]
 
         products = DGF.fetch_portfolio()
-        ws['E6'].value = products['EUR']
+        # print(products)
+        # ws['E6'].value = products['EUR']
 
         if not os.path.isfile("len_products.txt"):
             with open("len_products.txt", "w") as f:
                 f.write(str(len(products)))
             f.close()
 
-        count = self.products - 1
+        curr_row = 15
         excel_stock_loc = {}
         for i in range(len(excel_stocks)):
-            excel_stock_loc[count] = excel_stocks[i]
-            count += 1
+            excel_stock_loc[curr_row] = excel_stocks[i]
+            curr_row += 1
 
         output_summary = []
         for key, value in excel_stock_loc.items():
+            print(key)
+            print(value)
             price_new = round(products[value], 2)
             ws['J{}'.format(key)].value = price_new
 

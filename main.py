@@ -61,12 +61,12 @@ if __name__ == '__main__':
         for that particular item.
     """
 
-    StockX = StockXFunctions()
-    inventory = StockX.get_inventory()
-
-    StockX.scrape_stockx(inventory)     # This function creates a .pkl file that is externally so multiple runs can be
-                                        # performed in the case of discontinuations.
-
-    StockXOutput = open("item_prices.pkl", "rb")
-    stockx_prices = pickle.load(StockXOutput)
-    print(stockx_prices)
+    # StockX = StockXFunctions()
+    # inventory = StockX.get_inventory()
+    #
+    # StockX.scrape_stockx(inventory)     # This function creates a .pkl file that is externally so multiple runs can be
+    #                                     # performed in the case of discontinuations.
+    #
+    # StockXOutput = open("item_prices.pkl", "rb")
+    # stockx_prices = pickle.load(StockXOutput)
+    # print(stockx_prices)
