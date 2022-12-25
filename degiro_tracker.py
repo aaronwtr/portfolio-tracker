@@ -1,6 +1,7 @@
 import degiroapi
 import os
 
+
 class DegiroFunctions:
 
     def __init__(self):

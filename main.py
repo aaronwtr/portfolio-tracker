@@ -1,5 +1,5 @@
 from degiro_tracker import DegiroFunctions
-from csv_updater import DegiroUpdateCSV
+from csv_updater import DegiroUpdateCSV, CryptoUpdateCSV
 from crypto_tracker import BinanceFunctions
 from crypto_tracker import BitvavoFunctions
 from stockx_tracker import StockXFunctions
@@ -9,7 +9,7 @@ import pickle
 
 """
     Portfolio Tracker
-    Copyright (C) 2021  Aaron Wenteler
+    Copyright (C) 2023  Aaron Wenteler
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,11 +50,14 @@ if __name__ == '__main__':
 
     BF = BinanceFunctions()
     binance_portfolio = BF.get_balances()
-    print(binance_portfolio)
 
     BV = BitvavoFunctions()
     bitvavo_portfolio = BV.get_balances()
-    print(bitvavo_portfolio)
+
+    Crypto = CryptoUpdateCSV()
+
+    excel_coins, dict_old_coin_value = Crypto.get_excel_coins()
+    Crypto.update_coins(excel_coins, dict_old_coin_value, bitvavo_portfolio, binance_portfolio, save=True)
 
     """
         Scraping StockX, logging in and fetching portfolio. Then, the price is calculated based on the previous 10 sales

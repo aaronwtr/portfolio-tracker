@@ -14,8 +14,7 @@ class DegiroUpdateCSV:
 
     def get_excel_stocks(self):
         stocks_portfolio = pd.read_excel(self.portfolio_path, sheet_name='Stocks portfolio',
-                                         header=self.header_value - 2, usecols="A:J",
-                                         nrows=self.products)
+                                         header=self.header_value - 2, usecols="A:J", nrows=self.products)
 
         excel_stocks = list(stocks_portfolio["Code"])
         stocks_value_old = list(stocks_portfolio["Huidige waarde"])
@@ -43,10 +42,69 @@ class DegiroUpdateCSV:
 
         output_summary = []
         for key, value in excel_stock_loc.items():
-            print(key)
-            print(value)
             price_new = round(products[value], 2)
             ws['J{}'.format(key)].value = price_new
+
+            price_old = round(dict_old_value[value], 2)
+
+            percentage_change = round(((price_new - price_old)/price_old)*100, 2)
+            if percentage_change > 0:
+                percentage_change = '+{}'.format(percentage_change)
+
+            output_summary.append('{}: {} --> {} ({}%)'.format(value, price_old, price_new, percentage_change))
+        #
+        if save:
+            wb.save(self.portfolio_path)    # In order to make changes have effect, put save = True
+            print('Success! The new stock values were saved to {}\n\nThe following changes were made:\n'.format(
+                self.portfolio_path))
+        else:
+            print('Success! The results were not saved. If you want to save the results, add save=True to update_stocks().'
+                  '\n\nThe following changes were made:'.format(self.portfolio_path))
+
+        for summary in output_summary:
+            print(summary)
+
+        print('\n')
+
+
+class CryptoUpdateCSV:
+    def __init__(self):
+        self.portfolio_path = os.getenv("PORTFOLIO_CSV")
+
+    def get_excel_coins(self):
+        coins_portfolio = pd.read_excel(self.portfolio_path, sheet_name='Crypto portfolio',
+                                         header=9, usecols="A:E", nrows=17)
+
+        excel_coins = list(coins_portfolio["Code"])
+        coins_value_old = list(coins_portfolio["Huidige waarde"])
+        dict_old_coin_value = dict(zip(excel_coins, coins_value_old))
+        return excel_coins, dict_old_coin_value
+
+    def update_coins(self, excel_coins, dict_old_value, bitv_port, bin_portf, save=False):
+        wb = pyxl.load_workbook(filename=self.portfolio_path)
+        ws = wb.worksheets[1]
+
+        crypto_portfolio = {}
+
+        for d in (bitv_port, bin_portf):
+            for k, v in d.items():
+                if k in crypto_portfolio:
+                    crypto_portfolio[k] += v
+                else:
+                    crypto_portfolio[k] = v
+
+        crypto_portfolio = {k: v for k, v in crypto_portfolio.items() if k in excel_coins}
+
+        curr_row = 11
+        excel_stock_loc = {}
+        for i in range(len(excel_coins)):
+            excel_stock_loc[curr_row] = excel_coins[i]
+            curr_row += 1
+
+        output_summary = []
+        for key, value in excel_stock_loc.items():
+            price_new = round(crypto_portfolio[value], 2)
+            ws['E{}'.format(key)].value = price_new
 
             price_old = round(dict_old_value[value], 2)
 
@@ -58,8 +116,7 @@ class DegiroUpdateCSV:
 
         if save:
             wb.save(self.portfolio_path)    # In order to make changes have effect, put save = True
-            print('Success! The results were saved to {}\n\nThe following changes were made:\n'.format(
-                self.portfolio_path))
+            print('Success! The new coin values were saved to {}\n\nThe following changes were made:\n'.format(self.portfolio_path))
         else:
             print('Success! The results were not saved. If you want to save the results, add save=True to update_stocks().'
                   '\n\nThe following changes were made:'.format(self.portfolio_path))

@@ -2,3 +2,7 @@
 item_prices.pkl
 
 len_products.txt
+
+.idea/
+
+__pycache__/

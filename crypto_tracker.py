@@ -62,14 +62,11 @@ class BitvavoFunctions:
         self.bitvavo = Bitvavo({
             'APIKEY': os.getenv('BITVAVO_API_KEY'),
             'APISECRET': os.getenv('BITVAVO_SECRET_KEY'),
-            'RESTURL': 'https://api.bitvavo.com/v2',
-            'WSURL': 'wss://ws.bitvavo.com/v2/',
-            'ACCESSWINDOW': 10000,
-            'DEBUGGING': False
         })
 
     def get_balances(self):
         print('Fetching Bitvavo data...')
+
         balances = self.bitvavo.balance({})
         tickers = self.bitvavo.tickerPrice({})
 
