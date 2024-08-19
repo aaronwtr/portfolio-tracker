@@ -57,7 +57,7 @@ if __name__ == '__main__':
     Crypto = CryptoUpdateCSV()
 
     excel_coins, dict_old_coin_value = Crypto.get_excel_coins()
-    Crypto.update_coins(excel_coins, dict_old_coin_value, bitvavo_portfolio, binance_portfolio, save=True)
+    Crypto.update_coins(excel_coins, dict_old_coin_value, bitvavo_portfolio, {}, save=True)
 
     """
         Scraping StockX, logging in and fetching portfolio. Then, the price is calculated based on the previous 10 sales
