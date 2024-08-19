@@ -61,7 +61,7 @@ class BitvavoFunctions:
     def __init__(self):
         self.bitvavo = Bitvavo({
             'APIKEY': os.getenv('BITVAVO_API_KEY'),
-            'APISECRET': os.getenv('BITVAVO_SECRET_KEY'),
+            'APISECRET': os.getenv('BITVAVO_API_SECRET_KEY'),
         })
 
     def get_balances(self):
