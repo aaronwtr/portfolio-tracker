@@ -72,27 +72,31 @@ class CryptoUpdateCSV:
         self.portfolio_path = os.getenv("PORTFOLIO_CSV")
 
     def get_excel_coins(self):
-        coins_portfolio = pd.read_excel(self.portfolio_path, sheet_name='Crypto portfolio',
-                                         header=9, usecols="A:E", nrows=17)
+        coins_portfolio = pd.read_excel(self.portfolio_path, sheet_name='Crypto portfolio', header=9, usecols="A:E",
+                                        nrows=17)
 
         excel_coins = list(coins_portfolio["Code"])
         coins_value_old = list(coins_portfolio["Huidige waarde"])
         dict_old_coin_value = dict(zip(excel_coins, coins_value_old))
+        dict_old_coin_value = {k: v for k, v in dict_old_coin_value.items() if v != 0}
+        coins = list(dict_old_coin_value.keys())
+        excel_coins = [x for x in excel_coins if x in coins]
         return excel_coins, dict_old_coin_value
 
-    def update_coins(self, excel_coins, dict_old_value, bitv_port, bin_portf, save=False):
+    def update_coins(self, excel_coins, dict_old_value, bitv_port, bin_port, save=False):
         wb = pyxl.load_workbook(filename=self.portfolio_path)
         ws = wb.worksheets[1]
 
         crypto_portfolio = {}
-
-        for d in (bitv_port, bin_portf):
+        for d in (bitv_port, bin_port):
             for k, v in d.items():
-                if k in crypto_portfolio:
-                    crypto_portfolio[k] += v
-                else:
-                    crypto_portfolio[k] = v
+                if v != 0.0:
+                    if k in crypto_portfolio:
+                        crypto_portfolio[k] += v
+                    else:
+                        crypto_portfolio[k] = v
 
+        excel_coins = [x for x in excel_coins if x in crypto_portfolio]
         crypto_portfolio = {k: v for k, v in crypto_portfolio.items() if k in excel_coins}
 
         curr_row = 11
