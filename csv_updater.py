@@ -68,65 +68,131 @@ class DegiroUpdateCSV:
 
 
 class CryptoUpdateCSV:
-    def __init__(self):
-        self.portfolio_path = os.getenv("PORTFOLIO_CSV")
+    def __init__(self, portfolio_path=None):
+        self.portfolio_path = portfolio_path if portfolio_path else os.getenv("PORTFOLIO_CSV")
 
-    def get_excel_coins(self):
-        coins_portfolio = pd.read_excel(self.portfolio_path, sheet_name='Crypto portfolio', header=9, usecols="A:E",
-                                        nrows=17)
+    def get_portfolio_coins(self):
+        """Read the crypto portfolio from Excel file and return coins with their current values"""
+        try:
+            # Read the Excel file with pandas
+            coins_portfolio = pd.read_excel(
+                self.portfolio_path,
+                sheet_name='Crypto portfolio',
+                header=9,  # Start reading from the 10th row (0-indexed)
+                usecols="A:E",
+                nrows=18
+            )
 
-        excel_coins = list(coins_portfolio["Code"])
-        coins_value_old = list(coins_portfolio["Huidige waarde"])
-        dict_old_coin_value = dict(zip(excel_coins, coins_value_old))
-        dict_old_coin_value = {k: v for k, v in dict_old_coin_value.items() if v != 0}
-        coins = list(dict_old_coin_value.keys())
-        excel_coins = [x for x in excel_coins if x in coins]
-        return excel_coins, dict_old_coin_value
+            # Extract coin codes and values
+            excel_coins = list(coins_portfolio["Code"])
+            coins_value_old = list(coins_portfolio["Huidige waarde"])
 
-    def update_coins(self, excel_coins, dict_old_value, bitv_port, bin_port, save=False):
-        wb = pyxl.load_workbook(filename=self.portfolio_path)
-        ws = wb.worksheets[1]
+            # Create dictionary of coin codes and values
+            dict_old_coin_value = dict(zip(excel_coins, coins_value_old))
 
-        crypto_portfolio = {}
-        for d in (bitv_port, bin_port):
-            for k, v in d.items():
-                if v != 0.0:
-                    if k in crypto_portfolio:
-                        crypto_portfolio[k] += v
+            # Filter out coins with zero value
+            dict_old_coin_value = {k: v for k, v in dict_old_coin_value.items() if
+                                   pd.notna(v) and (isinstance(v, (int, float)) and v != 0 or
+                                                    isinstance(v, str) and self._convert_to_float(v) != 0)}
+
+            return dict_old_coin_value
+        except Exception as e:
+            print(f"Error reading Excel file: {str(e)}")
+            return {}
+
+    def _convert_to_float(self, value):
+        """Convert currency string to float"""
+        if pd.isna(value):
+            return 0.0
+        if isinstance(value, (int, float)):
+            return float(value)
+        # Remove € symbol, spaces, and replace comma with dot
+        value = str(value).replace('€', '').replace(' ', '').replace(',', '.')
+        try:
+            return float(value)
+        except ValueError:
+            return 0.0
+
+    def update_portfolio(self, bitv_port, bin_port=None, save=False):
+        """Update the Excel file with values from Bitvavo and Binance"""
+        try:
+            # Get original values for comparison
+            dict_old_value = self.get_portfolio_coins()
+
+            # Load the workbook
+            wb = pyxl.load_workbook(filename=self.portfolio_path)
+            ws = wb.worksheets[1]  # Assuming 'Crypto portfolio' is the second sheet (0-indexed)
+
+            # Combine portfolio data from different exchanges
+            crypto_portfolio = {}
+            for d in (bitv_port, bin_port or {}):
+                for k, v in d.items():
+                    if v != 0.0:
+                        if k in crypto_portfolio:
+                            crypto_portfolio[k] += v
+                        else:
+                            crypto_portfolio[k] = v
+
+            # Find coin locations in the Excel sheet
+            coin_rows = {}
+            for row in range(11, 30):  # Adjust range as needed
+                cell_value = ws.cell(row=row, column=2).value
+                if cell_value:
+                    coin_rows[cell_value] = row
+
+            # Update coin values
+            output_summary = []
+            total_value = 0
+
+            for coin_code, value in crypto_portfolio.items():
+                if coin_code in coin_rows:
+                    row = coin_rows[coin_code]
+
+                    # Format value as currency
+                    price_new = round(value, 2)
+                    total_value += price_new
+
+                    # Update cell with new value
+                    ws.cell(row=row, column=5).value = price_new
+
+                    # Calculate percentage change for reporting
+                    if coin_code in dict_old_value:
+                        price_old = self._convert_to_float(dict_old_value[coin_code])
+                        if price_old > 0:
+                            percentage_change = round(((price_new - price_old) / price_old) * 100, 2)
+                            change_str = f"+{percentage_change}%" if percentage_change > 0 else f"{percentage_change}%"
+                            output_summary.append(f"{coin_code}: {price_old:.2f} --> {price_new:.2f} ({change_str})")
+                        else:
+                            output_summary.append(f"{coin_code}: 0 --> {price_new:.2f} (new value)")
                     else:
-                        crypto_portfolio[k] = v
+                        output_summary.append(f"{coin_code}: NEW --> {price_new:.2f} (new asset)")
 
-        excel_coins = [x for x in excel_coins if x in crypto_portfolio]
-        crypto_portfolio = {k: v for k, v in crypto_portfolio.items() if k in excel_coins}
+            # Update the total
+            total_row = None
+            for row in range(11, 40):
+                if ws.cell(row=row, column=1).value == "TOTAL":
+                    total_row = row
+                    break
 
-        curr_row = 11
-        excel_stock_loc = {}
-        for i in range(len(excel_coins)):
-            excel_stock_loc[curr_row] = excel_coins[i]
-            curr_row += 1
+            if total_row:
+                ws.cell(row=total_row, column=5).value = total_value
 
-        output_summary = []
-        for key, value in excel_stock_loc.items():
-            price_new = round(crypto_portfolio[value], 2)
-            ws['E{}'.format(key)].value = price_new
+            # Save if requested
+            if save:
+                wb.save(self.portfolio_path)
+                print(f'Success! The new coin values were saved to {self.portfolio_path}')
+            else:
+                print(
+                    'Success! The results were not saved. If you want to save the results, add save=True to update_portfolio().')
 
-            price_old = round(dict_old_value[value], 2)
+            print('\nThe following changes were made:')
+            for summary in output_summary:
+                print(summary)
 
-            percentage_change = round(((price_new - price_old)/price_old)*100, 2)
-            if percentage_change > 0:
-                percentage_change = '+{}'.format(percentage_change)
+            print(f"\nTotal portfolio value updated to: € {total_value:.2f}")
 
-            output_summary.append('{}: {} --> {} ({}%)'.format(value, price_old, price_new, percentage_change))
+            return True
 
-        if save:
-            wb.save(self.portfolio_path)    # In order to make changes have effect, put save = True
-            print('Success! The new coin values were saved to {}\n\nThe following changes were made:\n'.format(self.portfolio_path))
-        else:
-            print('Success! The results were not saved. If you want to save the results, add save=True to update_stocks().'
-                  '\n\nThe following changes were made:'.format(self.portfolio_path))
-
-        for summary in output_summary:
-            print(summary)
-
-        print('\n')
-
+        except Exception as e:
+            print(f"Error updating Excel file: {str(e)}")
+            return False
